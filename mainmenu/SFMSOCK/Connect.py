@@ -55,6 +55,7 @@ else:
         "info",
         "operators",
         "bones", # Use gameModel.children instead.
+        "log",
     ]
 
     # Parse an attribute, used for JSON parsing.
@@ -119,22 +120,28 @@ else:
         elif attribute.GetTypeString() == "element_array":
             if attribute.count() > 0:
                 parsed[attribute.GetName()] = []
-                for i in range(attribute.count()):
-                    # Recursively parse the element array.
-                    if attribute.GetValue()[i-1] != None:
-                        parsed[attribute.GetName()].append(ParseElement(attribute.GetValue()[i-1], attribute))
+                if attribute.GetValue() != None:
+                    for i in range(attribute.count()):
+                        # Recursively parse the element array.
+                        if attribute.GetValue()[i-1] != None:
+                            parsed[attribute.GetName()].append(ParseElement(attribute.GetValue()[i-1], attribute))
             return True
         elif attribute.GetTypeString() == "color_array" or attribute.GetTypeString() == "vector2_array" or attribute.GetTypeString() == "vector3_array" or attribute.GetTypeString() == "vector4_array" or attribute.GetTypeString() == "qangle_array" or attribute.GetTypeString() == "quaternion_array":
             if attribute.count() > 0:
-                parsed[attribute.GetName()] = []
-                for i in range(attribute.count()):
-                    parsed[attribute.GetName()].append(ParseAttribute(attribute.GetValue()[i-1], parsed[attribute.GetName()], attribute))
+                if attribute.GetValue() != None:
+                    parsed[attribute.GetName()] = []
+                    print(attribute.GetName(), parent.GetName(), lastparent.GetName())
+                    for i in range(attribute.count()):
+                        if attribute.GetValue()[i-1] != None:
+                            parsed[attribute.GetName()].append(ParseAttribute(attribute.GetValue()[i-1], parsed[attribute.GetName()], attribute, parent))
             return True
         elif attribute.GetTypeString() == "string_array" or attribute.GetTypeString() == "bool_array" or attribute.GetTypeString() == "int_array" or attribute.GetTypeString() == "float_array": 
             if attribute.count() > 0:
-                parsed[attribute.GetName()] = []
-                for i in range(attribute.count()):
-                    parsed[attribute.GetName()].append(attribute.GetValue()[i-1])
+                if attribute.GetValue() != None:
+                    parsed[attribute.GetName()] = []
+                    for i in range(attribute.count()):
+                        if attribute.GetValue()[i-1] != None:
+                            parsed[attribute.GetName()].append(attribute.GetValue()[i-1])
             return True
         elif attribute.GetTypeString() == "string" or attribute.GetTypeString() == "bool" or attribute.GetTypeString() == "int" or attribute.GetTypeString() == "float":
             # should pass through as is
