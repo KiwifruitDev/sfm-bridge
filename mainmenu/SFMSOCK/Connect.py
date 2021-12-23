@@ -65,8 +65,6 @@ else:
         elif attribute.GetTypeString() == "element":
             # globalFlexControllers has attributes with recursive "gameModel" attributes.
             # We need to avoid that.
-            if lastparent is not None:
-                print(lastparent.GetName())
             if lastparent is not None and lastparent.GetName() == "globalFlexControllers":
                 return False
             # Recursively parse the element.
@@ -203,9 +201,6 @@ else:
                     framedata["filmClip"] = ParseElement(sfmApp.GetMovie().FindOrCreateFilmTrack().FindFilmClipAtTime(curtime), None)
             # Send framedata to server via json.
             self.client.send(json.dumps(framedata).encode())
-            # Debugging.
-            # TODO: Remove this.
-            #print(json.dumps(framedata).encode())
 
     # Handle connections but don't block the main thread.
     if __name__ == '__main__':
