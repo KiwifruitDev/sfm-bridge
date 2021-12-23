@@ -4,7 +4,7 @@ A websocket client for Source Filmmaker intended to trasmit scene and frame data
 This software can be used to transmit scenes from Source Filmmaker with 1:1 accuracy.
 
 ## Installation
-Merge ``mainmenu`` with ``Source Filmmaker/game/usermod/scripts/mainmenu``.
+Clone this repository and into ``Source Filmmaker/game/usermod/scripts/sfm`` and make sure that the ``mainmenu`` folder is merged.
 
 You should now see the scripts as options in the ``Scripts`` tab in Source Filmmaker.
 
