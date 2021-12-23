@@ -174,7 +174,7 @@ else:
             # Create a client for communication.
             self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # Connect to the server, likely Garry's Mod.
-            self.client.connect(os.environ.get("SFMSOCK_TCP_IP") or "localhost", os.environ.get("SFMSOCK_TCP_PORT") or 9191)
+            self.client.connect((os.environ.get("SFMSOCK_TCP_IP") or "localhost", os.environ.get("SFMSOCK_TCP_PORT") or 9191))
             # Send a cute message to the server.
             #self.client.send(("Hello from SFM! I'm SFM SOCK version v" + SFMSOCK_VERSION + " running on SFM v" + sfmApp.Version() + ". My current project is " + sfmApp.GetMovie().GetValue("name") + " on map " + sfmApp.GetMovie().GetValue("mapname")).encode())
             # Close SFM SOCK when the script is closed.
