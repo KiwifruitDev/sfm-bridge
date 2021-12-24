@@ -56,6 +56,7 @@ else:
         "operators",
         "bones", # Use gameModel.children instead.
         "log",
+        "overrideParent", # Parents cause recursion errors.
     ]
 
     # Parse an attribute, used for JSON parsing.
