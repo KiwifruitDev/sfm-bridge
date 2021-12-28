@@ -1,4 +1,4 @@
-# SFM SOCK: Send_Update.py
+# SFM Bridge: Open_Menu.py
 # This software is licensed under the MIT License.
 # Copyright (c) 2021 KiwifruitDev
 
@@ -21,13 +21,11 @@ import json
 import sfmApp # built-in, ignore warnings
 import time
 from PySide import QtGui
-from PySide import QtCore
 from PySide import shiboken
 from atexit import register
-from ast import literal_eval
 
-global SFMSOCK_VERSION
-SFMSOCK_VERSION = "1.0.1"
+global SFM_BRIDGE_VERSION
+SFM_BRIDGE_VERSION = "1.0.2"
 
 # Elements that are useless and cause recursion errors.
 recursive_elements = [
@@ -169,45 +167,45 @@ def ParseElement(dag, parent):
         ParseAttribute(dag_element, dag_parsed, dag, parent)
     return dag_parsed
 
-# This class is used for other scripts to interface with SFM SOCK.
+# This class is used for other scripts to interface with SFM Bridge.
 # It should never be initialized outside of this script.
-class SFMSOCK_API:
+class SFM_BRIDGE_API:
     def __init__(self):
-        # We only want one instance of SFM SOCK running at a time.
-        if "SFMSOCK" in globals():
-            sfm.Msg("Something tried to create a new SFM SOCK instance, previous instance will be used.\n")
+        # We only want one instance of SFM Bridge running at a time.
+        if "SFM_BRIDGE" in globals():
+            sfm.Msg("Something tried to create a new SFM Bridge instance, previous instance will be used.\n")
         else:
-            sfm.Msg("SFM SOCK is starting...\n")
-            globals()["SFMSOCK"] = self
+            sfm.Msg("SFM Bridge is starting...\n")
+            globals()["SFM_BRIDGE"] = self
         # Create a client for communication.
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Connect to the server, likely Garry's Mod.
-        if "SFMSOCK_TAB_WINDOW" in globals():
-            ipport = str(SFMSOCK_TAB_WINDOW.ip.text()).split(":", 1)
+        if "SFM_BRIDGE_TAB_WINDOW" in globals():
+            ipport = str(SFM_BRIDGE_TAB_WINDOW.ip.text()).split(":", 1)
             ip = ipport[0] or "localhost"
             port = int(ipport[1]) or 9191
             self.client.connect((ip, port))
         else:
-            self.client.connect((os.environ.get("SFMSOCK_TCP_IP") or "localhost", os.environ.get("SFMSOCK_TCP_PORT") or 9191))
+            self.client.connect((os.environ.get("SFM_BRIDGE_TCP_IP") or "localhost", os.environ.get("SFM_BRIDGE_TCP_PORT") or 9191))
         # Send a cute message to the server.
-        #self.client.send(("Hello from SFM! I'm SFM SOCK version v" + SFMSOCK_VERSION + " running on SFM v" + sfmApp.Version() + ". My current project is " + sfmApp.GetMovie().GetValue("name") + " on map " + sfmApp.GetMovie().GetValue("mapname")).encode())
-        # Close SFM SOCK when the script is closed.
+        #self.client.send(("Hello from SFM! I'm SFM Bridge version v" + SFM_BRIDGE_VERSION + " running on SFM v" + sfmApp.Version() + ". My current project is " + sfmApp.GetMovie().GetValue("name") + " on map " + sfmApp.GetMovie().GetValue("mapname")).encode())
+        # Close SFM Bridge when the script is closed.
         register(self.close)
-        sfm.Msg("SFM SOCK version " + SFMSOCK_VERSION + " is now running.\n")
+        sfm.Msg("SFM Bridge version " + SFM_BRIDGE_VERSION + " is now running.\n")
         self.frame("framedata", sfmApp.GetHeadTimeInFrames())
     def close(self):
-        sfm.Msg("SFM SOCK is closing...\n")
+        sfm.Msg("SFM Bridge is closing...\n")
         self.client.close()
-        sfm.Msg("SFM SOCK has closed.\n")
-        del globals()["SFMSOCK"]
+        sfm.Msg("SFM Bridge has closed.\n")
+        del globals()["SFM_BRIDGE"]
     # Frame request
     def frame(self, type, startframe): # currently supported types by protocol: framedata, framecommit
         framedata = {}
         framedata["type"] = type
-        framedata["version"] = SFMSOCK_VERSION
+        framedata["version"] = SFM_BRIDGE_VERSION
         framedata["project"] = sfmApp.GetMovie().GetValue("name")
         framedata["map"] = sfmApp.GetMovie().GetValue("mapname")
-        framedata["from"] = "SFM SOCK"
+        framedata["from"] = "SFM Bridge"
         framedata["currentFrame"] = startframe
         framedata["frameRate"] = sfmApp.GetFramesPerSecond()
         # Parse elements into something we can send.
@@ -222,9 +220,9 @@ class SFMSOCK_API:
         self.client.send("!START!" + json.dumps(framedata).encode() + "!END!")
 
 
-class SfmSockWindow(QtGui.QWidget):
+class SFMBridgeWindow(QtGui.QWidget):
     def __init__(self):
-        super( SfmSockWindow, self ).__init__()
+        super( SFMBridgeWindow, self ).__init__()
         self.initUI()
         
     def initUI(self):      
@@ -309,14 +307,14 @@ class SfmSockWindow(QtGui.QWidget):
         self.setLayout(self.layout)
 
         # First boot
-        if not "SFMSOCK" in globals():
+        if not "SFM_BRIDGE" in globals():
             self.status.setText("Not connected.")
             self.connectButton.setEnabled(True)
             self.transmitButton.setEnabled(False)
             self.disconnectButton.setEnabled(False)
             self.commitButton.setEnabled(False)
             self.exportButton.setEnabled(False)
-        elif "SFMSOCK" in globals():
+        elif "SFM_BRIDGE" in globals():
             self.status.setText("Connected.")
             self.connectButton.setEnabled(False)
             self.transmitButton.setEnabled(True)
@@ -328,77 +326,77 @@ class SfmSockWindow(QtGui.QWidget):
 
     def serverConnect(self):
         # Check to make sure that this script has not been run before.
-        if "SFMSOCK" in globals():
-            sfm.Msg("SFM SOCK is already running, this script can only be run once.\n")
+        if "SFM_BRIDGE" in globals():
+            sfm.Msg("SFM Bridge is already running, this script can only be run once.\n")
         else:
             self.status.setText("Connected.")
-            SFMSOCK_TAB_WINDOW.disconnectButton.setEnabled(True)
-            SFMSOCK_TAB_WINDOW.transmitButton.setEnabled(True)
-            SFMSOCK_TAB_WINDOW.connectButton.setEnabled(False)
-            SFMSOCK_TAB_WINDOW.commitButton.setEnabled(True)
-            SFMSOCK_TAB_WINDOW.exportButton.setEnabled(True)
+            SFM_BRIDGE_TAB_WINDOW.disconnectButton.setEnabled(True)
+            SFM_BRIDGE_TAB_WINDOW.transmitButton.setEnabled(True)
+            SFM_BRIDGE_TAB_WINDOW.connectButton.setEnabled(False)
+            SFM_BRIDGE_TAB_WINDOW.commitButton.setEnabled(True)
+            SFM_BRIDGE_TAB_WINDOW.exportButton.setEnabled(True)
             # Handle connections but don't block the main thread.
             if __name__ == '__main__':
                 # Check for movie.
                 if sfmApp.GetMovie() is None:
-                    sfm.Msg("SFM SOCK can't run without a session.\n")
+                    sfm.Msg("SFM Bridge can't run without a session.\n")
                 else:
-                    # Create a SFM SOCK API object.
-                    global SFMSOCK
-                    SFMSOCK = SFMSOCK_API()
+                    # Create a SFM Bridge API object.
+                    global SFM_BRIDGE
+                    SFM_BRIDGE = SFM_BRIDGE_API()
             else:
                 self.status.setText("Already connected.")
                 # How did we get here?
-                sfm.Msg("SFM SOCK is running in a different thread, exiting...\n")
+                sfm.Msg("SFM Bridge is running in a different thread, exiting...\n")
     
     def serverDisconnect(self):
-        # Make sure SFMSOCK exists.
-        if "SFMSOCK" in globals():
+        # Make sure SFM_BRIDGE exists.
+        if "SFM_BRIDGE" in globals():
             self.status.setText("Not connected.")
-            SFMSOCK_TAB_WINDOW.connectButton.setEnabled(True)
-            SFMSOCK_TAB_WINDOW.transmitButton.setEnabled(False)
-            SFMSOCK_TAB_WINDOW.disconnectButton.setEnabled(False)
-            SFMSOCK_TAB_WINDOW.commitButton.setEnabled(False)
-            SFMSOCK_TAB_WINDOW.exportButton.setEnabled(False)
+            SFM_BRIDGE_TAB_WINDOW.connectButton.setEnabled(True)
+            SFM_BRIDGE_TAB_WINDOW.transmitButton.setEnabled(False)
+            SFM_BRIDGE_TAB_WINDOW.disconnectButton.setEnabled(False)
+            SFM_BRIDGE_TAB_WINDOW.commitButton.setEnabled(False)
+            SFM_BRIDGE_TAB_WINDOW.exportButton.setEnabled(False)
             # We're good to go.
-            SFMSOCK.close()
+            SFM_BRIDGE.close()
         else:
             self.status.setText("Already disconnected.")
-            sfm.Msg("SFM SOCK is not running, this script can not be run.\n")
+            sfm.Msg("SFM Bridge is not running, this script can not be run.\n")
 
     def serverTransmit(self):
-        # Make sure SFMSOCK exists.
-        if "SFMSOCK" in globals():
+        # Make sure SFM_BRIDGE exists.
+        if "SFM_BRIDGE" in globals():
             frame = sfmApp.GetHeadTimeInFrames()
             self.status.setText("Transmitting frame " + str(frame) + ".")
             # We're good to go.
-            SFMSOCK.frame("framedata", frame)
+            SFM_BRIDGE.frame("framedata", frame)
         else:
             self.status.setText("Unable to transmit.")
-            sfm.Msg("SFM SOCK is not running, this script can not be run.\n")
+            sfm.Msg("SFM Bridge is not running, this script can not be run.\n")
 
     def serverCommit(self):
-        # Make sure SFMSOCK exists.
-        if "SFMSOCK" in globals():
+        # Make sure SFM_BRIDGE exists.
+        if "SFM_BRIDGE" in globals():
             frame = sfmApp.GetHeadTimeInFrames()
             self.status.setText("Committing frame " + str(frame) + ".")
             # We're good to go.
-            SFMSOCK.frame("framecommit", frame)
+            SFM_BRIDGE.frame("framecommit", frame)
         else:
             self.status.setText("Unable to commit.")
-            sfm.Msg("SFM SOCK is not running, this script can not be run.\n")
+            sfm.Msg("SFM Bridge is not running, this script can not be run.\n")
 
     def serverExport(self):
-        # Make sure SFMSOCK exists.
-        if "SFMSOCK" in globals():
+        # Make sure SFM_BRIDGE exists.
+        if "SFM_BRIDGE" in globals():
             self.transmitButton.setEnabled(False)
             self.commitButton.setEnabled(False)
             self.exportButton.setEnabled(False)
             self.status.setText("Exporting...")
             # We're good to go.
-            SFMSOCK = globals()["SFMSOCK"]
+            SFM_BRIDGE = globals()["SFM_BRIDGE"]
             for i in range(self.startFrame.value(), self.endFrame.value() + 1):
-                if SFMSOCK is not None:
+                if SFM_BRIDGE is not None:
                     curtime = vs.DmeTime_t(((1.0/sfmApp.GetFramesPerSecond())*i))
                     animSetMultiplier = 0
                     if sfmApp.GetMovie() is not None:
@@ -412,14 +410,14 @@ class SfmSockWindow(QtGui.QWidget):
                     time.sleep((self.frameDelay.value() + animSetMultiplier) / 3)
                     sfmApp.ProcessEvents()
                     time.sleep((self.frameDelay.value() + animSetMultiplier) / 3)
-                    SFMSOCK.frame("framecommit", i)
+                    SFM_BRIDGE.frame("framecommit", i)
                     time.sleep((self.frameDelay.value() + animSetMultiplier) / 3)
                 else:
                     self.transmitButton.setEnabled(True)
                     self.commitButton.setEnabled(True)
                     self.exportButton.setEnabled(True)
                     self.status.setText("Export failed.")
-                    sfm.Msg("SFM SOCK could not send a frame commit, stopping.\n")
+                    sfm.Msg("SFM Bridge could not send a frame commit, stopping.\n")
                     break # if you disconnect, stop trying to send frames.
             self.transmitButton.setEnabled(True)
             self.commitButton.setEnabled(True)
@@ -427,7 +425,7 @@ class SfmSockWindow(QtGui.QWidget):
             self.status.setText("Export complete.")
         else:
             self.status.setText("Unable to export.")
-            sfm.Msg("SFM SOCK is not running, this script can not be run.\n")
+            sfm.Msg("SFM Bridge is not running, this script can not be run.\n")
 
     def startFrameChanged(self, value):
         self.startFrame.setValue(value)
@@ -436,13 +434,13 @@ class SfmSockWindow(QtGui.QWidget):
         self.endFrame.setValue(value)
 
     def liveUpdateChanged(self, value):
-        # Make sure SFMSOCK exists.
+        # Make sure SFM_BRIDGE exists.
         if value:
             self.status.setText("Live update enabled.")
             while self.liveUpdate.isChecked():
-                if "SFMSOCK" in globals():
+                if "SFM_BRIDGE" in globals():
                     startframe = sfmApp.GetHeadTimeInFrames()
-                    SFMSOCK.frame("framedata", startframe)
+                    SFM_BRIDGE.frame("framedata", startframe)
                     sfmApp.ProcessEvents()
                     curtime = vs.DmeTime_t(((1.0/sfmApp.GetFramesPerSecond())*startframe))
                     animSetMultiplier = 0
@@ -462,8 +460,8 @@ class SfmSockWindow(QtGui.QWidget):
     def setEndFrame(self):
         self.endFrame.setValue(sfmApp.GetHeadTimeInFrames())
 
-global SFMSOCK_TAB_WINDOW
-SFMSOCK_TAB_WINDOW = SfmSockWindow()
+global SFM_BRIDGE_TAB_WINDOW
+SFM_BRIDGE_TAB_WINDOW = SFMBridgeWindow()
 
-sfmApp.RegisterTabWindow("WindowSFMSOCK", "SFM SOCK", shiboken.getCppPointer( SFMSOCK_TAB_WINDOW )[0])
-sfmApp.ShowTabWindow("WindowSFMSOCK")
+sfmApp.RegisterTabWindow("WindowSFMBridge", "SFM Bridge v" + SFM_BRIDGE_VERSION, shiboken.getCppPointer( SFM_BRIDGE_TAB_WINDOW )[0])
+sfmApp.ShowTabWindow("WindowSFMBridge")
